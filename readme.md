@@ -137,6 +137,16 @@ newValue = 80*1.25;
 // = 100 (first value)
 ```
 
+## Staircase operations
+
+### Additive
+
+### Multiplicative / ratio
+
+### Logspace
+
+New feature -- explanation to be added. Relevant parameters: `stepSizeDown`, `stepSizeUp`, and `breaks` (arrays of equal length).
+
 ## Multiple staircases
 
 It is possible to use the staircase module to maintain more than one stairecase. To do that, specify multiple objects in the object used to instanciate `Staircase()`.
@@ -155,10 +165,6 @@ It is possible to use the staircase module to maintain more than one stairecase.
   },
 }
 ```
-
-## Logspace
-
-New feature -- explanation to be added. Relevant parameters: `stepSizeDown`, `stepSizeUp`, and `breaks` (arrays of equal length).
 
 ### Example
 
