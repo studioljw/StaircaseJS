@@ -13,7 +13,7 @@ You can try an example of StaircaseJS [here](http://hadrienj.github.io/Staircase
 
 Create a new staircase will allow you to store and track the values of the stimulus. The parameters of the staircase (equation used to change the value, x-up y-down etc.) has to be set when the contructor is instanciated.
 
-## Instanciation
+## Instantiation
 
 Staircase objects are created using the Staircase constructor with an object as argument:
 
@@ -46,7 +46,7 @@ This object has to contain the name of the staircase as a `key` and its paramete
 
 In this first example, we will create a `stair` object to manage the frequency of a sound. At each trial, participants hear two sounds and have to tell which one is higher in frequency. One sound has a fixed frequency of 1000Hz and the other has a changing frequency around 1000Hz. The frequency of this second sound is adaptively chosen according to participant's answers.
 
-### Set parameters
+### Set parameters of `deltaF` staircase:
 
 ```js
 var stair = new Staircase({
@@ -79,7 +79,7 @@ At this time, a new value is stored in the `stair` object depending of the answe
 sound.frequency.value = stair.getLast('deltaF');
 ```
 
-The historic of the values can be obtained with:
+The history of `deltaF` values can be obtained with:
 
 ```js
 stair.get('deltaF');
@@ -155,6 +155,10 @@ It is possible to use the staircase module to maintain more than one stairecase.
   },
 }
 ```
+
+## Logspace
+
+New feature -- explanation to be added. Relevant parameters: `stepSizeDown`, `stepSizeUp`, and `breaks` (arrays of equal length).
 
 ### Example
 
@@ -234,14 +238,14 @@ sound.frequency.value = stair.getLast('deltaF');
 
 ## Stairecase parameters:
 
-These parameters can be used to instanciate `Staircase()`:
+These parameters can be used to instantiate `Staircase()`:
 
 - `firstVal`: the first value of the variable.
 - `down`: how many good answers are required to match one bad answer. For instance, if `down=2` the value will decrease (or increase according to the direction of the difficulty, see parameter `direction`) of an amount `x` after 2 good answers and will increase of the same amount `x` for one bad answer. This corresponds to a 1-up 2-down procedure.
 - `factor`: this is the value of the multiplicator used to change the variable.
 - `direction`: tells if a good answer is associated with a decrease (`direction=-1`) or an increase (`direction=1`) of the value. The default behaviour is a decrease of the value when a good answer is provided (like for frequency thresholds for example).
 - `limits`: define the lower and upper values that can be used. When reached, the value will stay to the bound until there is an opposite answer.
-- `operation`: can be `multiply` or `add`. Determine what operation to do with the factor. If `operation: 'multiply'`, the increased value will be `*` by factor and the decrease value `/` by factor. If `operation: 'add'`, the increased value will be `+` by factor and the decrease value `-` by factor.
+- `operation`: can be `multiply`, `add`, or `logspace`. Determine what operation to do with the factor. If `operation: 'multiply'`, the increased value will be `*` by factor and the decrease value `/` by factor. If `operation: 'add'`, the increased value will be `+` by factor and the decrease value `-` by factor. If `operation: 'logspace'`, the increased value will be added by the logspace factor specified in the array `stepSizeUp` (depending on the breaks specified in the array `breaks`) and the decreased value will be subtracted by the logspace factor specified in the array `StepSizeDown` (again, depending on the breaks specified in the array `breaks`).
 - The `sameStairMax` option will tell the maximum number of consecutive trials with this staircase.
 - `lock` can be `true` or `false`. When `true`, the staircase will not be active. This can be used to avoid a staircase for a moment.
 

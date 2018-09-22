@@ -25,7 +25,8 @@ function Staircase(stairs) {
     this.stairs[i].direction = stairs[i].direction || -1; // -1: lower val is harder | 1: lower val is easier
     this.stairs[i].reversalLimit = stairs[i].reversalLimit || 0; // Maximum reversals before settling on the final value. 0: infinite
     this.stairs[i].limits = stairs[i].limits || false;
-    this.stairs[i].operation = stairs[i].operation || 'add'; // Modes: 'add' | 'multiply'
+    this.stairs[i].breaks = stairs[i].breaks || false; // breaks for logspace option
+    this.stairs[i].operation = stairs[i].operation || 'add'; // Modes: 'add' | 'multiply' | 'logspace'
     this.stairs[i].wait = stairs[i].wait || 1;
     this.stairs[i].val = stairs[i].val || [this.stairs[i].firstVal]; // If necessary a history of values can be inserted using val
     this.stairs[i].active = stairs[i].active || (false); // A random staircase is activated using Staircase.init() so they all start disabled by default
@@ -37,7 +38,7 @@ function Staircase(stairs) {
     this.stairs[i].sameStairCount = stairs[i].sameStairCount || 0;
     this.stairs[i].verbosity = stairs[i].verbosity || 0; // Logging verbosity: 0-off; 1-on
     if(this.stairs[i].verbosity>0) {
-        console.log("Built staircase '"+this.stairs[i].name+"' ("+this.stairs[i].operation+"): Start="+this.stairs[i].firstVal+"; StepSize="+this.stairs[i].stepSize+"; Limits=["+this.stairs[i].limits[0]+", "+this.stairs[i].limits[1]+"]");
+        console.log("Built staircase '"+this.stairs[i].name+"' ("+this.stairs[i].operation+"): Start="+this.stairs[i].firstVal+"; StepSizeDown="+this.stairs[i].stepSizeDown+"; StepSizeUp="+this.stairs[i].stepSizeUp+"; Limits=["+this.stairs[i].limits[0]+", "+this.stairs[i].limits[1]+"]");
     }
   }
   this.tasks = {
@@ -111,6 +112,56 @@ function Staircase(stairs) {
               return stair.val[stair.val.length-1]*stair.stepSizeUp;
             } else {
               return stair.val[stair.val.length-1];
+            }
+          },
+        }
+      },
+      logspace: {
+        noWait: {
+          '1': function (stair) {
+            stair.successiveGood = 0;
+            stair.successiveBad++;
+            return stair.val[stair.val.length - 1] - stair.stepSizeDown * (stair.stepSizeDown / stair.up);
+          },
+          '-1': function (stair) {
+            stair.successiveGood = 0;
+            stair.successiveBad++;
+            return stair.val[stair.val.length - 1] + stair.stepSizeUp * (stair.stepSizeUp / stair.up);
+          },
+        },
+        wait: {
+          '1': function (stair) {
+            stair.successiveGood = 0;
+            stair.successiveBad++;
+            // change value only if sufficient successive good values
+            if (stair.successiveBad >= stair.up) {
+              // change based on break values
+              if (stair.val.length >= stair.breaks[0] && stair.val.length < stair.breaks[1]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[0])
+              } else if (stair.val.length >= stair.breaks[1] && stair.val.length < stair.breaks[2]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[1])
+              } else {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[2])
+              }
+            } else {
+              return stair.val[stair.val.length - 1];
+            }
+          },
+          '-1': function (stair) {
+            stair.successiveGood = 0;
+            stair.successiveBad++;
+            // change value only if sufficient successive good values
+            if (stair.successiveBad >= stair.up) {
+              // change based on break values
+              if (stair.val.length >= stair.breaks[0] && stair.val.length < stair.breaks[1]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[0])
+              } else if (stair.val.length >= stair.breaks[1] && stair.val.length < stair.breaks[2]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[1])
+              } else {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[2])
+              }
+            } else {
+              return stair.val[stair.val.length - 1];
             }
           },
         }
@@ -194,6 +245,56 @@ function Staircase(stairs) {
             return stair.val[stair.val.length-1] / (Math.pow(stair.stepSizeDown, stair.up/stair.down));
           },
         }
+      },
+      logspace: {
+        wait: {
+          '1': function (stair) {
+            stair.sameStairCount++;
+            stair.successiveGood++;
+            stair.successiveBad = 0;
+            if (stair.successiveGood >= stair.down) {
+              if (stair.val.length >= stair.breaks[0] && stair.val.length < stair.breaks[1]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[0])
+              } else if (stair.val.length >= stair.breaks[1] && stair.val.length < stair.breaks[2]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[1])
+              } else {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) + stair.stepSizeUp[2])
+              }
+            } else {
+              return stair.val[stair.val.length - 1];
+            }
+          },
+          '-1': function (stair) {
+            stair.sameStairCount++;
+            stair.successiveGood++;
+            stair.successiveBad = 0;
+            if (stair.successiveGood >= stair.down) {
+              if (stair.val.length >= stair.breaks[0] && stair.val.length < stair.breaks[1]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[0])
+              } else if (stair.val.length >= stair.breaks[1] && stair.val.length < stair.breaks[2]) {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[1])
+              } else {
+                return Math.E ** (Math.log(stair.val[stair.val.length - 1]) - stair.stepSizeDown[2])
+              }
+            } else {
+              return stair.val[stair.val.length - 1];
+            }
+          },
+        },
+        noWait: {
+          '1': function (stair) {
+            stair.sameStairCount++;
+            stair.successiveGood++;
+            stair.successiveBad = 0;
+            return stair.val[stair.val.length - 1] + stair.stepSizeUp * (stair.stepSizeUp / stair.down);
+          },
+          '-1': function (stair) {
+            stair.sameStairCount++;
+            stair.successiveGood++;
+            stair.successiveBad = 0;
+            return stair.val[stair.val.length - 1] - stair.stepSizeDown * (stair.stepSize / stair.down);
+          },
+        },
       }
     }
   }
